@@ -23,7 +23,7 @@ $app->configure('app');
 
 2. Run composer to add the dependency.
 ```bash
-    composer require kingdarkness/horizon-lumen
+    composer require kingdarkness/lumen-horizon
 ```
 
 3. Publish config
