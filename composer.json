@@ -5,6 +5,7 @@
         "lumen",
         "queue"
     ],
+    "license": "MIT",
     "authors": [
         {
             "name": "Nguyễn Trần Hoàn",
