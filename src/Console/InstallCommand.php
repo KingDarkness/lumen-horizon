@@ -3,13 +3,10 @@
 namespace Laravel\Horizon\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Console\DetectsApplicationNamespace;
 use Illuminate\Support\Str;
 
 class InstallCommand extends Command
 {
-    use DetectsApplicationNamespace;
-
     /**
      * The name and signature of the console command.
      *
@@ -52,24 +49,24 @@ class InstallCommand extends Command
      */
     protected function registerHorizonServiceProvider()
     {
-        $namespace = Str::replaceLast('\\', '', $this->getAppNamespace());
+        $namespace = Str::replaceLast('\\', '', $this->laravel->getNamespace());
 
         $appConfig = file_get_contents(config_path('app.php'));
 
-        if (Str::contains($appConfig, $namespace . '\\Providers\\HorizonServiceProvider::class')) {
+        if (Str::contains($appConfig, $namespace.'\\Providers\\HorizonServiceProvider::class')) {
             return;
         }
 
         file_put_contents(config_path('app.php'), str_replace(
-            "{$namespace}\\Providers\EventServiceProvider::class," . PHP_EOL,
-            "{$namespace}\\Providers\EventServiceProvider::class," . PHP_EOL . "        {$namespace}\Providers\HorizonServiceProvider::class," . PHP_EOL,
+            "{$namespace}\\Providers\EventServiceProvider::class,".PHP_EOL,
+            "{$namespace}\\Providers\EventServiceProvider::class,".PHP_EOL."        {$namespace}\Providers\HorizonServiceProvider::class,".PHP_EOL,
             $appConfig
         ));
 
-        file_put_contents($this->app->path('Providers/HorizonServiceProvider.php'), str_replace(
+        file_put_contents(app_path('Providers/HorizonServiceProvider.php'), str_replace(
             "namespace App\Providers;",
             "namespace {$namespace}\Providers;",
-            file_get_contents($this->app->path('Providers/HorizonServiceProvider.php'))
+            file_get_contents(app_path('Providers/HorizonServiceProvider.php'))
         ));
     }
 }
