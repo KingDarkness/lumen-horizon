@@ -21,19 +21,7 @@ class HorizonServiceProvider extends ServiceProvider
     {
         $this->registerEvents();
         $this->registerRoutes();
-        $this->registerRedisAlias();
-    }
-
-    /**
-     * Register redis factory.
-     *
-     * @return void
-     */
-    protected function registerRedisAlias()
-    {
-        $this->app->alias('redis', \Illuminate\Contracts\Redis\Factory::class);
-
-        $this->app->make('redis');
+        $this->registerCommands();
     }
 
     /**
@@ -65,22 +53,40 @@ class HorizonServiceProvider extends ServiceProvider
             'namespace' => 'Laravel\Horizon\Http\Controllers',
             'middleware' => config('horizon.middleware', 'web'),
         ], function () {
-            $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         });
     }
 
     /**
-     * Register the custom queue connectors for Horizon.
+     * Register the Horizon Artisan commands.
      *
      * @return void
      */
-    protected function registerQueueConnectors()
+    protected function registerCommands()
     {
-        $this->app->resolving(QueueManager::class, function ($manager) {
-            $manager->addConnector('redis', function () {
-                return new RedisConnector($this->app['redis']);
-            });
-        });
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Console\ClearCommand::class,
+                Console\ContinueCommand::class,
+                Console\ContinueSupervisorCommand::class,
+                Console\ForgetFailedCommand::class,
+                Console\HorizonCommand::class,
+                // Console\InstallCommand::class,
+                Console\ListCommand::class,
+                Console\PauseCommand::class,
+                Console\PauseSupervisorCommand::class,
+                Console\PublishCommand::class,
+                Console\PurgeCommand::class,
+                Console\StatusCommand::class,
+                Console\SupervisorCommand::class,
+                Console\SupervisorsCommand::class,
+                Console\TerminateCommand::class,
+                Console\TimeoutCommand::class,
+                Console\WorkCommand::class,
+            ]);
+        }
+
+        $this->commands([Console\SnapshotCommand::class]);
     }
 
     /**
@@ -90,8 +96,8 @@ class HorizonServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if (!defined('HORIZON_PATH')) {
-            define('HORIZON_PATH', realpath(__DIR__ . '/../'));
+        if (! defined('HORIZON_PATH')) {
+            define('HORIZON_PATH', realpath(__DIR__.'/../'));
         }
 
         $this->app->bind(Console\WorkCommand::class, function ($app) {
@@ -100,7 +106,6 @@ class HorizonServiceProvider extends ServiceProvider
 
         $this->configure();
         $this->registerServices();
-        $this->registerCommands();
         $this->registerQueueConnectors();
     }
 
@@ -112,7 +117,7 @@ class HorizonServiceProvider extends ServiceProvider
     protected function configure()
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../config/horizon.php',
+            __DIR__.'/../config/horizon.php',
             'horizon'
         );
 
@@ -128,36 +133,22 @@ class HorizonServiceProvider extends ServiceProvider
     {
         foreach ($this->serviceBindings as $key => $value) {
             is_numeric($key)
-                ? $this->app->singleton($value)
-                : $this->app->singleton($key, $value);
+                    ? $this->app->singleton($value)
+                    : $this->app->singleton($key, $value);
         }
     }
 
     /**
-     * Register the Horizon Artisan commands.
+     * Register the custom queue connectors for Horizon.
      *
      * @return void
      */
-    protected function registerCommands()
+    protected function registerQueueConnectors()
     {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                // Console\InstallCommand::class,
-                // Console\AssetsCommand::class,
-                Console\HorizonCommand::class,
-                Console\ListCommand::class,
-                Console\PurgeCommand::class,
-                Console\PauseCommand::class,
-                Console\ContinueCommand::class,
-                Console\StatusCommand::class,
-                Console\SupervisorCommand::class,
-                Console\SupervisorsCommand::class,
-                Console\TerminateCommand::class,
-                Console\TimeoutCommand::class,
-                Console\WorkCommand::class,
-            ]);
-        }
-
-        $this->commands([Console\SnapshotCommand::class]);
+        $this->app->resolving(QueueManager::class, function ($manager) {
+            $manager->addConnector('redis', function () {
+                return new RedisConnector($this->app['redis']);
+            });
+        });
     }
 }
