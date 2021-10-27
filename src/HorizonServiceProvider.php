@@ -100,6 +100,7 @@ class HorizonServiceProvider extends ServiceProvider
             define('HORIZON_PATH', realpath(__DIR__.'/../'));
         }
 
+        $this->app->register(\Illuminate\Notifications\NotificationServiceProvider::class);
         $this->app->bind(Console\WorkCommand::class, function ($app) {
             return new Console\WorkCommand($app['queue.worker'], $app['cache.store']);
         });
