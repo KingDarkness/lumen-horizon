@@ -47,7 +47,7 @@ class JobsController extends Controller
      */
     protected function decode($job)
     {
-        $job->payload = json_decode($job->payload);
+        $job->payload = json_decode((string) $job->payload);
 
         return $job;
     }

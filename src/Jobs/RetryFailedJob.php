@@ -56,7 +56,7 @@ class RetryFailedJob
      */
     protected function preparePayload($id, $payload)
     {
-        $payload = json_decode($payload, true);
+        $payload = json_decode((string) $payload, true);
 
         return json_encode(array_merge($payload, [
             'id' => $id,

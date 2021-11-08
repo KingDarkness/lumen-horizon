@@ -81,7 +81,7 @@ class BatchesController extends Controller
         app(JobRepository::class)
                         ->getJobs($batch->failedJobIds)
                         ->reject(function ($job) {
-                            $payload = json_decode($job->payload);
+                            $payload = json_decode((string) $job->payload);
 
                             return isset($payload->retry_of);
                         })->each(function ($job) {

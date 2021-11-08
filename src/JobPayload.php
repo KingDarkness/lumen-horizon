@@ -35,7 +35,7 @@ class JobPayload implements ArrayAccess
     {
         $this->value = $value;
 
-        $this->decoded = json_decode($value, true);
+        $this->decoded = json_decode((string) $value, true);
     }
 
     /**

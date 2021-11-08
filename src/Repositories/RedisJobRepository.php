@@ -474,7 +474,7 @@ class RedisJobRepository implements JobRepository
     {
         if ($retries = $this->connection()->hget($payload->retryOf(), 'retried_by')) {
             $retries = $this->updateRetryStatus(
-                $payload, json_decode($retries, true), $failed
+                $payload, json_decode((string) $retries, true), $failed
             );
 
             $this->connection()->hset(
@@ -665,7 +665,7 @@ class RedisJobRepository implements JobRepository
      */
     public function storeRetryReference($id, $retryId)
     {
-        $retries = json_decode($this->connection()->hget($id, 'retried_by') ?: '[]');
+        $retries = json_decode((string) $this->connection()->hget($id, 'retried_by') ?: '[]');
 
         $retries[] = [
             'id' => $retryId,
