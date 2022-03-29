@@ -154,7 +154,7 @@ class RedisMetricsRepository implements MetricsRepository
     {
         return collect($this->measuredQueues())->sortBy(function ($queue) {
             if ($snapshots = $this->connection()->zrange('snapshot:queue:'.$queue, -1, 1)) {
-                return json_decode((string) $snapshots[0])->runtime;
+                return json_decode($snapshots[0])->runtime;
             }
         })->last();
     }
@@ -168,7 +168,7 @@ class RedisMetricsRepository implements MetricsRepository
     {
         return collect($this->measuredQueues())->sortBy(function ($queue) {
             if ($snapshots = $this->connection()->zrange('snapshot:queue:'.$queue, -1, 1)) {
-                return json_decode((string) $snapshots[0])->throughput;
+                return json_decode($snapshots[0])->throughput;
             }
         })->last();
     }
@@ -233,7 +233,7 @@ class RedisMetricsRepository implements MetricsRepository
     {
         return collect($this->connection()->zrange('snapshot:'.$key, 0, -1))
             ->map(function ($snapshot) {
-                return (object) json_decode((string) $snapshot, true);
+                return (object) json_decode($snapshot, true);
             })->values()->all();
     }
 
@@ -331,8 +331,8 @@ class RedisMetricsRepository implements MetricsRepository
      */
     protected function minutesSinceLastSnapshot()
     {
-        $lastSnapshotAt = $this->connection()->get('last_snapshot_at')
-                    ?: $this->storeSnapshotTimestamp();
+        $lastSnapshotAt = (int) ($this->connection()->get('last_snapshot_at')
+                                    ?: $this->storeSnapshotTimestamp());
 
         return max(
             (CarbonImmutable::now()->getTimestamp() - $lastSnapshotAt) / 60, 1

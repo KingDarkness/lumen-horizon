@@ -21,6 +21,9 @@ class HorizonServiceProvider extends ServiceProvider
     {
         $this->registerEvents();
         $this->registerRoutes();
+        $this->registerResources();
+        $this->defineAssetPublishing();
+        $this->offerPublishing();
         $this->registerCommands();
     }
 
@@ -58,6 +61,46 @@ class HorizonServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register the Horizon resources.
+     *
+     * @return void
+     */
+    protected function registerResources()
+    {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'horizon');
+    }
+
+    /**
+     * Define the asset publishing configuration.
+     *
+     * @return void
+     */
+    public function defineAssetPublishing()
+    {
+        $this->publishes([
+            HORIZON_PATH.'/public' => public_path('vendor/horizon'),
+        ], ['horizon-assets', 'laravel-assets']);
+    }
+
+    /**
+     * Setup the resource publishing groups for Horizon.
+     *
+     * @return void
+     */
+    protected function offerPublishing()
+    {
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../stubs/HorizonServiceProvider.stub' => app_path('Providers/HorizonServiceProvider.php'),
+            ], 'horizon-provider');
+
+            $this->publishes([
+                __DIR__.'/../config/horizon.php' => config_path('horizon.php'),
+            ], 'horizon-config');
+        }
+    }
+
+    /**
      * Register the Horizon Artisan commands.
      *
      * @return void
@@ -71,7 +114,7 @@ class HorizonServiceProvider extends ServiceProvider
                 Console\ContinueSupervisorCommand::class,
                 Console\ForgetFailedCommand::class,
                 Console\HorizonCommand::class,
-                // Console\InstallCommand::class,
+                Console\InstallCommand::class,
                 Console\ListCommand::class,
                 Console\PauseCommand::class,
                 Console\PauseSupervisorCommand::class,
@@ -100,7 +143,6 @@ class HorizonServiceProvider extends ServiceProvider
             define('HORIZON_PATH', realpath(__DIR__.'/../'));
         }
 
-        $this->app->register(\Illuminate\Notifications\NotificationServiceProvider::class);
         $this->app->bind(Console\WorkCommand::class, function ($app) {
             return new Console\WorkCommand($app['queue.worker'], $app['cache.store']);
         });
@@ -118,8 +160,7 @@ class HorizonServiceProvider extends ServiceProvider
     protected function configure()
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../config/horizon.php',
-            'horizon'
+            __DIR__.'/../config/horizon.php', 'horizon'
         );
 
         Horizon::use(config('horizon.use', 'default'));
@@ -146,7 +187,7 @@ class HorizonServiceProvider extends ServiceProvider
      */
     protected function registerQueueConnectors()
     {
-        $this->app->resolving(QueueManager::class, function ($manager) {
+        $this->callAfterResolving(QueueManager::class, function ($manager) {
             $manager->addConnector('redis', function () {
                 return new RedisConnector($this->app['redis']);
             });

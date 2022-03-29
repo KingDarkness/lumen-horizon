@@ -83,7 +83,7 @@ class RedisMasterSupervisorRepository implements MasterSupervisorRepository
                 'name' => $record[0],
                 'pid' => $record[1],
                 'status' => $record[2],
-                'supervisors' => json_decode((string) $record[3], true),
+                'supervisors' => json_decode($record[3], true),
             ];
         })->filter()->all();
     }

@@ -84,7 +84,7 @@ class MonitoringController extends Controller
     protected function getJobs($jobIds, $startingAt = 0)
     {
         return $this->jobs->getJobs($jobIds, $startingAt)->map(function ($job) {
-            $job->payload = json_decode((string) $job->payload);
+            $job->payload = json_decode($job->payload);
 
             return $job;
         })->values();
